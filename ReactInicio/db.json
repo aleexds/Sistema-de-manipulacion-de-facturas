@@ -1,0 +1,38 @@
+{
+"facturas": [
+    {
+    "id": "1",
+    "numeroFactura": "FAC-001",
+    "fecha": "2026-09-07",
+    "emisor": {
+    "nombre": "TechStore S.A.",
+    "idFiscal": "3-101-123456"
+    },
+    "cliente": {
+    "nombre": "Juan Pérez",
+    "correo": "juan@example.com"
+    },
+    "items": [
+        {
+        "id": 1,
+        "descripcion": "Teclado",
+        "cantidad": 2,
+        "precio": 25
+        },
+        {
+        "id": 2,
+        "descripcion": "Monitor",
+        "cantidad": 1,
+        "precio": 180
+        },
+        {
+        "id": 3,
+        "descripcion": "Mouse",
+        "cantidad": 3,
+        "precio": 12
+        }
+    ],
+    "impuestoPorcentaje": 13
+    }
+]
+}
