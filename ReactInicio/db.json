@@ -33,6 +33,34 @@
         }
       ],
       "impuestoPorcentaje": 13
+    },
+    {
+      "id": "b973",
+      "numeroFactura": "120250850",
+      "fecha": "2026-05-21",
+      "emisor": {
+        "nombre": "Oscorp",
+        "idFiscal": "61642533"
+      },
+      "cliente": {
+        "nombre": "Jonathan",
+        "correo": "jonathan@gmail.com"
+      },
+      "items": [
+        {
+          "id": "item-1",
+          "descripcion": "1",
+          "cantidad": 1,
+          "precio": 300
+        },
+        {
+          "id": "1c01cf01-4ccc-411b-aa9c-cf02e4f0da99",
+          "descripcion": "2",
+          "cantidad": 1,
+          "precio": 200
+        }
+      ],
+      "impuestoPorcentaje": 13
     }
   ]
 }
