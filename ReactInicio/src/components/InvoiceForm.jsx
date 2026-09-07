@@ -2,30 +2,24 @@ import { useState } from 'react';
 
 export function InvoiceForm({ onInvoiceCreated, onCancel }) {
   const [numeroFactura, setNumeroFactura] = useState('');
-  const [fecha, setFecha] = useState('');
-  const [emisor, setEmisor] = useState({ nombre: '', idFiscal: '' });
+  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [emisor, setEmisor] = useState({ nombre: 'TechStore S.A.', idFiscal: '3-101-123456' });
   const [cliente, setCliente] = useState({ nombre: '', correo: '' });
   const [impuestoPorcentaje, setImpuestoPorcentaje] = useState(13);
   
-  // ✅ Usamos un ID fijo para el primer ítem inicial
   const [items, setItems] = useState([
     { id: 'item-1', descripcion: '', cantidad: 1, precio: 0 }
   ]);
 
-  // Manejo de ítems dinámicos
   const handleAddItem = () => {
     setItems([
       ...items,
-      // ✅ Generador único estándar del navegador
       { id: crypto.randomUUID(), descripcion: '', cantidad: 1, precio: 0 }
     ]);
   };
 
   const handleRemoveItem = (id) => {
-    if (items.length === 1) {
-      alert('La factura debe tener al menos un ítem.');
-      return;
-    }
+    if (items.length === 1) return;
     setItems(items.filter((item) => item.id !== id));
   };
 
@@ -47,16 +41,7 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
     e.preventDefault();
 
     if (!numeroFactura || !fecha || !emisor.nombre || !cliente.nombre) {
-      alert('Por favor completa todos los campos obligatorios del emisor y cliente.');
-      return;
-    }
-
-    const hasInvalidItem = items.some(
-      (item) => !item.descripcion || item.cantidad <= 0 || item.precio < 0
-    );
-
-    if (hasInvalidItem) {
-      alert('Revisa los ítems. Todos deben tener descripción, cantidad > 0 y precio válido.');
+      alert('Por favor completa todos los campos obligatorios.');
       return;
     }
 
@@ -76,139 +61,146 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
     })
       .then((res) => res.json())
       .then((savedInvoice) => {
-        alert('¡Factura guardada con éxito!');
         onInvoiceCreated(savedInvoice);
       })
       .catch((err) => console.error('Error guardando factura:', err));
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Crear Nueva Factura</h2>
+    <form className="form-card" onSubmit={handleSubmit}>
+      <h2 style={{ marginTop: 0, color: 'var(--accent-blue)' }}>Crear Nueva Factura</h2>
 
-      <fieldset>
-        <legend>Datos Generales</legend>
-        <label>
-          Número de Factura:
+      <h3>Datos Principales</h3>
+      <div className="form-grid">
+        <div className="form-group">
+          <label>Nº Factura</label>
           <input
             type="text"
+            placeholder="Ej: FAC-100"
             value={numeroFactura}
             onChange={(e) => setNumeroFactura(e.target.value)}
             required
           />
-        </label>
-        <br />
-        <label>
-          Fecha:
+        </div>
+        <div className="form-group">
+          <label>Fecha de Emisión</label>
           <input
             type="date"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
             required
           />
-        </label>
-      </fieldset>
+        </div>
+      </div>
 
-      <fieldset>
-        <legend>Datos del Emisor</legend>
-        <label>
-          Nombre Empresa:
+      <h3>Datos del Emisor y Cliente</h3>
+      <div className="form-grid">
+        <div className="form-group">
+          <label>Empresa Emisora</label>
           <input
             type="text"
             value={emisor.nombre}
             onChange={(e) => setEmisor({ ...emisor, nombre: e.target.value })}
             required
           />
-        </label>
-        <br />
-        <label>
-          RUC / ID Fiscal:
+        </div>
+        <div className="form-group">
+          <label>RUC / ID Fiscal Emisor</label>
           <input
             type="text"
             value={emisor.idFiscal}
             onChange={(e) => setEmisor({ ...emisor, idFiscal: e.target.value })}
             required
           />
-        </label>
-      </fieldset>
-
-      <fieldset>
-        <legend>Datos del Cliente</legend>
-        <label>
-          Nombre Cliente:
+        </div>
+        <div className="form-group">
+          <label>Nombre del Cliente</label>
           <input
             type="text"
+            placeholder="Ej: Juan Pérez"
             value={cliente.nombre}
             onChange={(e) => setCliente({ ...cliente, nombre: e.target.value })}
             required
           />
-        </label>
-        <br />
-        <label>
-          Correo / Dirección:
+        </div>
+        <div className="form-group">
+          <label>Correo / Dirección Cliente</label>
           <input
             type="text"
+            placeholder="juan@ejemplo.com"
             value={cliente.correo}
             onChange={(e) => setCliente({ ...cliente, correo: e.target.value })}
             required
           />
-        </label>
-      </fieldset>
+        </div>
+      </div>
 
-      <fieldset>
-        <legend>Ítems de la Factura</legend>
-        {items.map((item, index) => (
-          <div key={item.id} style={{ marginBottom: '10px' }}>
-            <span>#{index + 1} </span>
-            <input
-              type="text"
-              placeholder="Descripción"
-              value={item.descripcion}
-              onChange={(e) => handleItemChange(item.id, 'descripcion', e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Cant"
-              min="1"
-              value={item.cantidad}
-              onChange={(e) => handleItemChange(item.id, 'cantidad', e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Precio Unitario"
-              min="0"
-              step="0.01"
-              value={item.precio}
-              onChange={(e) => handleItemChange(item.id, 'precio', e.target.value)}
-              required
-            />
-            <button type="button" onClick={() => handleRemoveItem(item.id)}>
-              Eliminar
-            </button>
-          </div>
-        ))}
-        <button type="button" onClick={handleAddItem}>
-          + Agregar Ítem
-        </button>
-      </fieldset>
-
-      <fieldset>
-        <legend>Impuesto</legend>
-        <label>
-          % IVA / Impuesto:
+      <h3>Ítems de la Factura</h3>
+      {items.map((item) => (
+        <div key={item.id} className="item-row">
+          <input
+            type="text"
+            placeholder="Descripción del producto/servicio"
+            style={{ flex: 3 }}
+            value={item.descripcion}
+            onChange={(e) => handleItemChange(item.id, 'descripcion', e.target.value)}
+            required
+          />
           <input
             type="number"
-            value={impuestoPorcentaje}
-            onChange={(e) => setImpuestoPorcentaje(e.target.value)}
+            placeholder="Cant."
+            min="1"
+            style={{ flex: 1 }}
+            value={item.cantidad}
+            onChange={(e) => handleItemChange(item.id, 'cantidad', e.target.value)}
+            required
           />
-        </label>
-      </fieldset>
+          <input
+            type="number"
+            placeholder="Precio"
+            min="0"
+            step="0.01"
+            style={{ flex: 1 }}
+            value={item.precio}
+            onChange={(e) => handleItemChange(item.id, 'precio', e.target.value)}
+            required
+          />
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() => handleRemoveItem(item.id)}
+          >
+            X
+          </button>
+        </div>
+      ))}
 
-      <br />
-      <button type="submit">Guardar Factura</button>
-      <button type="button" onClick={onCancel}>Cancelar</button>
+      <button
+        type="button"
+        className="btn btn-secondary"
+        style={{ marginBottom: '1.5rem' }}
+        onClick={handleAddItem}
+      >
+        + Agregar Producto
+      </button>
+
+      <div className="form-group" style={{ maxWidth: '200px', marginBottom: '1.5rem' }}>
+        <label>Impuesto (% IVA)</label>
+        <input
+          type="number"
+          value={impuestoPorcentaje}
+          onChange={(e) => setImpuestoPorcentaje(e.target.value)}
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <button type="submit" className="btn btn-primary">
+          Guardar Factura
+        </button>
+        <button type="button" className="btn btn-secondary" onClick={onCancel}>
+          Cancelar
+        </button>
+      </div>
     </form>
   );
 }

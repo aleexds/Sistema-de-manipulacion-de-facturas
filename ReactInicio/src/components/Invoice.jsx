@@ -1,7 +1,6 @@
 export function Invoice({ invoice, onBack, onDeleteInvoice }) {
   if (!invoice) return null;
 
-  // Cálculos derivados del estado
   const subtotal = invoice.items.reduce(
     (acc, item) => acc + item.cantidad * item.precio,
     0
@@ -9,60 +8,86 @@ export function Invoice({ invoice, onBack, onDeleteInvoice }) {
   const impuesto = subtotal * (invoice.impuestoPorcentaje / 100);
   const total = subtotal + impuesto;
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div>
-      <button onClick={onBack}>← Volver al listado</button>
-      {' '}
-      {/* ✅ Botón Eliminar en la vista detalle */}
-      <button onClick={() => onDeleteInvoice(invoice.id)}>Eliminar Factura</button>
-      
-      <h2>FACTURA #{invoice.numeroFactura}</h2>
-      <p><strong>Fecha de Emisión:</strong> {invoice.fecha}</p>
-
-      <hr />
-
-      <div>
-        <h3>Emisor</h3>
-        <p><strong>Nombre:</strong> {invoice.emisor.nombre}</p>
-        <p><strong>ID Fiscal:</strong> {invoice.emisor.idFiscal}</p>
+      {/* Botones de acción (se ocultan automáticamente al imprimir) */}
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <button className="btn btn-secondary" onClick={onBack}>
+          ← Volver al listado
+        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-primary" onClick={handlePrint}>
+            🖨️ Imprimir / Guardar PDF
+          </button>
+          <button className="btn btn-danger" onClick={() => onDeleteInvoice(invoice.id)}>
+            Eliminar Factura
+          </button>
+        </div>
       </div>
 
-      <div>
-        <h3>Cliente</h3>
-        <p><strong>Nombre:</strong> {invoice.cliente.nombre}</p>
-        <p><strong>Correo/Dirección:</strong> {invoice.cliente.correo}</p>
-      </div>
+      {/* Hoja de la Factura Real */}
+      <div className="invoice-paper">
+        <div className="invoice-header">
+          <div>
+            <h1 style={{ margin: 0, color: '#0f172a' }}>{invoice.emisor.nombre}</h1>
+            <p style={{ margin: '0.2rem 0', color: '#64748b' }}>ID Fiscal: {invoice.emisor.idFiscal}</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <h2 style={{ margin: 0, color: '#2563eb' }}>FACTURA</h2>
+            <p style={{ margin: '0.2rem 0', fontWeight: 'bold' }}>#{invoice.numeroFactura}</p>
+            <p style={{ margin: 0, color: '#64748b' }}>Fecha: {invoice.fecha}</p>
+          </div>
+        </div>
 
-      <hr />
+        <div className="invoice-grid">
+          <div>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#64748b' }}>FACTURADO A:</h4>
+            <strong style={{ fontSize: '1.1rem' }}>{invoice.cliente.nombre}</strong>
+            <p style={{ margin: '0.2rem 0', color: '#475569' }}>{invoice.cliente.correo}</p>
+          </div>
+        </div>
 
-      <h3>Detalle de Ítems</h3>
-      <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>Descripción</th>
-            <th>Cantidad</th>
-            <th>Precio Unitario</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoice.items.map((item) => (
-            <tr key={item.id}>
-              <td>{item.descripcion}</td>
-              <td>{item.cantidad}</td>
-              <td>${item.precio}</td>
-              <td>${(item.cantidad * item.precio).toFixed(2)}</td>
+        <table className="invoice-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th style={{ textAlign: 'center' }}>Cantidad</th>
+              <th style={{ textAlign: 'right' }}>Precio Unitario</th>
+              <th style={{ textAlign: 'right' }}>Total</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {invoice.items.map((item) => (
+              <tr key={item.id}>
+                <td>{item.descripcion}</td>
+                <td style={{ textAlign: 'center' }}>{item.cantidad}</td>
+                <td style={{ textAlign: 'right' }}>${item.precio.toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }}>${(item.cantidad * item.precio).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      <hr />
-
-      <div>
-        <p><strong>Subtotal:</strong> ${subtotal.toFixed(2)}</p>
-        <p><strong>Impuesto ({invoice.impuestoPorcentaje}%):</strong> ${impuesto.toFixed(2)}</p>
-        <p><strong>Total a Pagar:</strong> ${total.toFixed(2)}</p>
+        <div className="invoice-totals">
+          <div className="totals-box">
+            <div className="totals-row">
+              <span>Subtotal:</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            <div className="totals-row">
+              <span>IVA ({invoice.impuestoPorcentaje}%):</span>
+              <span>${impuesto.toFixed(2)}</span>
+            </div>
+            <div className="totals-row grand-total">
+              <span>Total:</span>
+              <span>${total.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
