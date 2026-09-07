@@ -61,6 +61,34 @@
         }
       ],
       "impuestoPorcentaje": 13
+    },
+    {
+      "id": "9b59",
+      "numeroFactura": "1000",
+      "fecha": "2026-09-07",
+      "emisor": {
+        "nombre": "TechStore S.A.",
+        "idFiscal": "3-101-123456"
+      },
+      "cliente": {
+        "nombre": "Johan",
+        "correo": "johan@gmail.com"
+      },
+      "items": [
+        {
+          "id": "item-1",
+          "descripcion": "1",
+          "cantidad": 1,
+          "precio": 100
+        },
+        {
+          "id": "4172b853-b878-4b08-b6fd-ccc5c1b17e91",
+          "descripcion": "2",
+          "cantidad": 1,
+          "precio": 200
+        }
+      ],
+      "impuestoPorcentaje": 13
     }
   ]
 }

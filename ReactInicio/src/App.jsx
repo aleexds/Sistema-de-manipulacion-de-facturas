@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
+import './App.css'; // ✅ Importar hoja de estilos
 import { InvoiceList } from './components/InvoiceList';
 import { InvoiceForm } from './components/InvoiceForm';
 import { Invoice } from './components/Invoice';
 
 export default function App() {
   const [invoices, setInvoices] = useState([]);
-  const [view, setView] = useState('list'); // 'list' | 'create' | 'view'
+  const [view, setView] = useState('list');
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-  // Cargar facturas desde el backend simulado
   const fetchInvoices = () => {
     fetch('http://localhost:5000/facturas')
       .then((res) => res.json())
@@ -31,41 +31,34 @@ export default function App() {
     setView('view');
   };
 
-  // ✅ NUEVA FUNCIÓN: Eliminar factura
   const handleDeleteInvoice = (id) => {
-    const confirmDelete = window.confirm('¿Estás seguro de que deseas eliminar esta factura?');
+    const confirmDelete = window.confirm('¿Deseas eliminar esta factura?');
     if (!confirmDelete) return;
 
-    fetch(`http://localhost:5000/facturas/${id}`, {
-      method: 'DELETE',
-    })
+    fetch(`http://localhost:5000/facturas/${id}`, { method: 'DELETE' })
       .then((res) => {
         if (res.ok) {
-          // Filtrar la factura eliminada del estado local
           setInvoices((prev) => prev.filter((inv) => inv.id !== id));
           if (selectedInvoice && selectedInvoice.id === id) {
             setSelectedInvoice(null);
             setView('list');
           }
-          alert('Factura eliminada correctamente.');
-        } else {
-          alert('Ocurrió un error al intentar eliminar la factura.');
         }
-      })
-      .catch((err) => console.error('Error eliminando factura:', err));
+      });
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Sistema de Manipulación de Facturas</h1>
-      <hr />
+    <div className="app-container">
+      <header className="header-title no-print">
+        <h1>Sistema de Facturación</h1>
+      </header>
 
       {view === 'list' && (
         <InvoiceList
           invoices={invoices}
           onSelectInvoice={handleSelectInvoice}
           onCreateNew={() => setView('create')}
-          onDeleteInvoice={handleDeleteInvoice} // ✅ Pasar prop
+          onDeleteInvoice={handleDeleteInvoice}
         />
       )}
 
@@ -80,7 +73,7 @@ export default function App() {
         <Invoice
           invoice={selectedInvoice}
           onBack={() => setView('list')}
-          onDeleteInvoice={handleDeleteInvoice} // ✅ Pasar prop
+          onDeleteInvoice={handleDeleteInvoice}
         />
       )}
     </div>
