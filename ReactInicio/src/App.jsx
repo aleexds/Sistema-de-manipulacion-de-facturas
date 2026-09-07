@@ -1,122 +1,88 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import { InvoiceList } from './components/InvoiceList';
+import { InvoiceForm } from './components/InvoiceForm';
+import { Invoice } from './components/Invoice';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [invoices, setInvoices] = useState([]);
+  const [view, setView] = useState('list'); // 'list' | 'create' | 'view'
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+
+  // Cargar facturas desde el backend simulado
+  const fetchInvoices = () => {
+    fetch('http://localhost:5000/facturas')
+      .then((res) => res.json())
+      .then((data) => setInvoices(data))
+      .catch((err) => console.error('Error cargando facturas:', err));
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const handleSelectInvoice = (invoice) => {
+    setSelectedInvoice(invoice);
+    setView('view');
+  };
+
+  const handleInvoiceCreated = (newInvoice) => {
+    setInvoices([...invoices, newInvoice]);
+    setSelectedInvoice(newInvoice);
+    setView('view');
+  };
+
+  // ✅ NUEVA FUNCIÓN: Eliminar factura
+  const handleDeleteInvoice = (id) => {
+    const confirmDelete = window.confirm('¿Estás seguro de que deseas eliminar esta factura?');
+    if (!confirmDelete) return;
+
+    fetch(`http://localhost:5000/facturas/${id}`, {
+      method: 'DELETE',
+    })
+      .then((res) => {
+        if (res.ok) {
+          // Filtrar la factura eliminada del estado local
+          setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+          if (selectedInvoice && selectedInvoice.id === id) {
+            setSelectedInvoice(null);
+            setView('list');
+          }
+          alert('Factura eliminada correctamente.');
+        } else {
+          alert('Ocurrió un error al intentar eliminar la factura.');
+        }
+      })
+      .catch((err) => console.error('Error eliminando factura:', err));
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ padding: '20px' }}>
+      <h1>Sistema de Manipulación de Facturas</h1>
+      <hr />
 
-      <div className="ticks"></div>
+      {view === 'list' && (
+        <InvoiceList
+          invoices={invoices}
+          onSelectInvoice={handleSelectInvoice}
+          onCreateNew={() => setView('create')}
+          onDeleteInvoice={handleDeleteInvoice} // ✅ Pasar prop
+        />
+      )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      {view === 'create' && (
+        <InvoiceForm
+          onInvoiceCreated={handleInvoiceCreated}
+          onCancel={() => setView('list')}
+        />
+      )}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {view === 'view' && (
+        <Invoice
+          invoice={selectedInvoice}
+          onBack={() => setView('list')}
+          onDeleteInvoice={handleDeleteInvoice} // ✅ Pasar prop
+        />
+      )}
+    </div>
+  );
 }
-
-export default App
