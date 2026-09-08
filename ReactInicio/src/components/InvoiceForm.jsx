@@ -1,6 +1,9 @@
 import { useState } from 'react';
+import { createInvoice } from '../services/createInvoiceService';
 
 export function InvoiceForm({ onInvoiceCreated, onCancel }) {
+  // 1. Añadimos el estado para el ID personalizado
+  const [customId, setCustomId] = useState('');
   const [numeroFactura, setNumeroFactura] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [emisor, setEmisor] = useState({ nombre: 'TechStore S.A.', idFiscal: '3-101-123456' });
@@ -37,15 +40,12 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
     );
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!numeroFactura || !fecha || !emisor.nombre || !cliente.nombre) {
-      alert('Por favor completa todos los campos obligatorios.');
-      return;
-    }
-
+    // 2. Armamos la factura incluyendo la propiedad 'id'
     const newInvoice = {
+      id: customId.trim(), // 👈 Aquí se asigna tu ID personalizado
       numeroFactura,
       fecha,
       emisor,
@@ -54,24 +54,32 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
       impuestoPorcentaje: Number(impuestoPorcentaje)
     };
 
-    fetch('http://localhost:5000/facturas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newInvoice)
-    })
-      .then((res) => res.json())
-      .then((savedInvoice) => {
-        onInvoiceCreated(savedInvoice);
-      })
-      .catch((err) => console.error('Error guardando factura:', err));
+    try {
+      const savedInvoice = await createInvoice(newInvoice);
+      alert('Factura creada exitosamente.');
+      onInvoiceCreated(savedInvoice);
+    } catch {
+      alert('Ocurrió un error al intentar crear la factura (comprueba que el ID no esté repetido).');
+    }
   };
 
   return (
     <form className="form-card" onSubmit={handleSubmit}>
       <h2 style={{ marginTop: 0, color: 'var(--accent-blue)' }}>Crear Nueva Factura</h2>
 
-      <h3>Datos Principales</h3>
       <div className="form-grid">
+        {/* 3. Nuevo campo de entrada para el ID de búsqueda */}
+        <div className="form-group">
+          <label>ID de Registro (Buscador)</label>
+          <input
+            type="text"
+            placeholder="Ej: 101, fac-01, etc."
+            value={customId}
+            onChange={(e) => setCustomId(e.target.value)}
+            required
+          />
+        </div>
+
         <div className="form-group">
           <label>Nº Factura</label>
           <input
@@ -82,6 +90,7 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
             required
           />
         </div>
+
         <div className="form-group">
           <label>Fecha de Emisión</label>
           <input
@@ -93,7 +102,6 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
         </div>
       </div>
 
-      <h3>Datos del Emisor y Cliente</h3>
       <div className="form-grid">
         <div className="form-group">
           <label>Empresa Emisora</label>
@@ -101,15 +109,6 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
             type="text"
             value={emisor.nombre}
             onChange={(e) => setEmisor({ ...emisor, nombre: e.target.value })}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>RUC / ID Fiscal Emisor</label>
-          <input
-            type="text"
-            value={emisor.idFiscal}
-            onChange={(e) => setEmisor({ ...emisor, idFiscal: e.target.value })}
             required
           />
         </div>
@@ -123,16 +122,6 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
             required
           />
         </div>
-        <div className="form-group">
-          <label>Correo / Dirección Cliente</label>
-          <input
-            type="text"
-            placeholder="juan@ejemplo.com"
-            value={cliente.correo}
-            onChange={(e) => setCliente({ ...cliente, correo: e.target.value })}
-            required
-          />
-        </div>
       </div>
 
       <h3>Ítems de la Factura</h3>
@@ -140,7 +129,7 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
         <div key={item.id} className="item-row">
           <input
             type="text"
-            placeholder="Descripción del producto/servicio"
+            placeholder="Descripción"
             style={{ flex: 3 }}
             value={item.descripcion}
             onChange={(e) => handleItemChange(item.id, 'descripcion', e.target.value)}
@@ -190,12 +179,15 @@ export function InvoiceForm({ onInvoiceCreated, onCancel }) {
           type="number"
           value={impuestoPorcentaje}
           onChange={(e) => setImpuestoPorcentaje(e.target.value)}
+          min="0"
+          max="100"
+          required
         />
       </div>
 
       <div style={{ display: 'flex', gap: '1rem' }}>
         <button type="submit" className="btn btn-primary">
-          Guardar Factura
+          Guardar y Mostrar
         </button>
         <button type="button" className="btn btn-secondary" onClick={onCancel}>
           Cancelar
